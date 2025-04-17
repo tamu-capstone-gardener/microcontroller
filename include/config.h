@@ -9,7 +9,7 @@
 #define WIFI_PASSWORD "placeholder"
 
 // MQTT Configuration
-#define MQTT_SERVER   "test.mosquitto.org"
+#define MQTT_SERVER   "mqtt.eclipseprojects.io"
 #define MQTT_PORT     1883
 
 // Plant Module ID

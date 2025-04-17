@@ -1,8 +1,8 @@
 #include <WiFi.h>
-#include "esp_wpa2.h" // Include for WPA2 Enterprise
+// #include "esp_wpa2.h" // Include for WPA2 Enterprise
 #include "config.h"   // Your config.h should define WIFI_SSID, WIFI_USERNAME, WIFI_PASSWORD
 
-
+// ALSO ADD BACK ABOVE INCLUDE
 // for TAMU WiFi
 /*void connectToWiFi() {
   WiFi.disconnect(true);  // Reset WiFi
@@ -31,7 +31,6 @@
 void connectToWiFi() {
   WiFi.disconnect(true);
   WiFi.mode(WIFI_STA);
-  esp_wifi_sta_wpa2_ent_disable();
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
