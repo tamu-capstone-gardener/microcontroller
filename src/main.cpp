@@ -94,7 +94,7 @@ const unsigned long DEBOUNCE_DELAY = 200;
 // Global map to store the last time a command was processed for each control type.
 std::map<String, unsigned long> lastCommandTime;
 
-void handleControlCommand(String controlType, StaticJsonDocument<256>& doc) {
+void handleControlCommand(String controlType) {
   unsigned long now = millis();
 
   // Check if we have a recorded time for this control type.
@@ -110,44 +110,27 @@ void handleControlCommand(String controlType, StaticJsonDocument<256>& doc) {
   // Record the current time for this control before processing.
   lastCommandTime[controlType] = now;
   
-  // Retrieve parameters from JSON.
-  bool toggle = doc["toggle"] | false;
-  int duration = doc["duration"] | 10000;  // Default duration: 10 seconds.
-  
   Serial.print("Handling command for control type: ");
   Serial.println(controlType);
   
   // Loop through the list to find the matching control.
   for (auto &ctrl : controlsList) {
     if (ctrl.type.equals(controlType)) {
-      if (toggle) {
-        // Toggle the control's state.
-        *(ctrl.state) = !(*(ctrl.state));
-        if (*(ctrl.state)) {
-          Serial.print("Toggling ");
-          Serial.print(ctrl.type);
-          Serial.println(": turning ON");
-          ctrl.on();
-          publishControlStatus(controlType, true);
-        } else {
-          Serial.print("Toggling ");
-          Serial.print(ctrl.type);
-          Serial.println(": turning OFF");
-          ctrl.off();
-          publishControlStatus(controlType, false);
-        }
-      } else {
-        // Activate the control for a set duration.
-        Serial.print("Activating ");
+      // Toggle the control's state.
+      *(ctrl.state) = !(*(ctrl.state));
+      if (*(ctrl.state)) {
+        Serial.print("Toggling ");
         Serial.print(ctrl.type);
-        Serial.print(" for ");
-        Serial.print(duration);
-        Serial.println(" ms");
+        Serial.println(": turning ON");
         ctrl.on();
-        delay(duration);
+        publishControlStatus(controlType, true);
+      } else {
+        Serial.print("Toggling ");
+        Serial.print(ctrl.type);
+        Serial.println(": turning OFF");
         ctrl.off();
+        publishControlStatus(controlType, false);
       }
-      // Found and processed the control; exit the loop.
       return;
     }
   }
@@ -227,16 +210,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Received control command for: ");
   Serial.println(controlType);
   
-  // Parse the JSON payload.
-  StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, payload, length);
-  if (error) {
-    Serial.println("Failed to parse control command JSON");
-    return;
-  }
-  
   // Dispatch the command by looping through our list.
-  handleControlCommand(controlType, doc);
+  handleControlCommand(controlType);
 }
 
 void setup() {
