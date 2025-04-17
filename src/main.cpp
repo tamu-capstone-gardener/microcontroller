@@ -88,8 +88,28 @@ void setupControlsList() {
   });
 }
 
-// Generic control command handler that loops through controlsList.
+// Define a debounce delay in milliseconds.
+const unsigned long DEBOUNCE_DELAY = 200;
+
+// Global map to store the last time a command was processed for each control type.
+std::map<String, unsigned long> lastCommandTime;
+
 void handleControlCommand(String controlType, StaticJsonDocument<256>& doc) {
+  unsigned long now = millis();
+
+  // Check if we have a recorded time for this control type.
+  if (lastCommandTime.count(controlType)) {
+    // If the difference is less than the debounce delay, ignore the command.
+    if (now - lastCommandTime[controlType] < DEBOUNCE_DELAY) {
+      Serial.print("Debounce: Ignoring duplicate command for ");
+      Serial.println(controlType);
+      return;
+    }
+  }
+
+  // Record the current time for this control before processing.
+  lastCommandTime[controlType] = now;
+  
   // Retrieve parameters from JSON.
   bool toggle = doc["toggle"] | false;
   int duration = doc["duration"] | 10000;  // Default duration: 10 seconds.
@@ -108,11 +128,13 @@ void handleControlCommand(String controlType, StaticJsonDocument<256>& doc) {
           Serial.print(ctrl.type);
           Serial.println(": turning ON");
           ctrl.on();
+          publishControlStatus(controlType, true);
         } else {
           Serial.print("Toggling ");
           Serial.print(ctrl.type);
           Serial.println(": turning OFF");
           ctrl.off();
+          publishControlStatus(controlType, false);
         }
       } else {
         // Activate the control for a set duration.
@@ -134,6 +156,7 @@ void handleControlCommand(String controlType, StaticJsonDocument<256>& doc) {
   Serial.print(controlType);
   Serial.println(" not found.");
 }
+
 
 // MQTT callback function.
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
@@ -231,9 +254,11 @@ void setup() {
   
   Serial.println("Waiting for connectivity before sending sensor init message...");
   while (WiFi.status() != WL_CONNECTED || !mqttClient.connected()) {
-    Serial.print(".");
+    Serial.print("WiFi Status: ");
+    Serial.println(WiFi.status());
     delay(500);
     if (!mqttClient.connected()) {
+      Serial.println("MQTT not connecting.");
       reconnectMQTT();
     }
   }
@@ -241,6 +266,11 @@ void setup() {
   delay(3000);
   sendSensorInitMessage();
   configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
+
+  // Init control signal status
+  for (auto &ctrl : controlsList) {
+    publishControlStatus(ctrl.type, *(ctrl.state));
+  }
 }
 
 void loop() {
@@ -259,7 +289,7 @@ void loop() {
     int light = readLightAnalog();
 
     // Uncomment below line for sensor readings printed to serial once every 12 seconds
-    printSensorReadings(moisture, temp, hum, light);
+    // printSensorReadings(moisture, temp, hum, light);
 
 
     totalMoisture += moisture;
@@ -294,6 +324,7 @@ void loop() {
     // Only publish sensor data if registration is complete
     if (!sensorsRegistered) {
       Serial.println("Sensors not registered yet, skipping sensor data publish.");
+      sendSensorInitMessage();
     } else {
       if (sensorIdMap.count("moisture")) {
         publishSensorData(sensorIdMap["moisture"].c_str(), avgMoisture, timeStamp);
@@ -314,6 +345,9 @@ void loop() {
         publishSensorData(sensorIdMap["light_analog"].c_str(), avgLight, timeStamp);
       } else {
         Serial.println("Light sensor not registered.");
+      }
+      for (auto &ctrl : controlsList) {
+        publishControlStatus(ctrl.type, *(ctrl.state));
       }
     }
   

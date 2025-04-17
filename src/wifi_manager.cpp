@@ -29,10 +29,14 @@
 }*/
 
 void connectToWiFi() {
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_STA);
+  esp_wifi_sta_wpa2_ent_disable();
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print("Wifi Status: ");
+    Serial.println(WiFi.status());
   }
   Serial.println("\nWiFi connected. IP: " + WiFi.localIP().toString());
 }

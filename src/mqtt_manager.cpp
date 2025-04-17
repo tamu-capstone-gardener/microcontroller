@@ -21,6 +21,7 @@ void reconnectMQTT() {
       mqttClient.subscribe(subscription.c_str());
 
     } else {
+      Serial.println("MQTT not connecting :(");
       delay(5000);
     }
   }
@@ -89,6 +90,37 @@ void sendSensorInitMessage() {
   Serial.println("Payload: " + out);
   Serial.println(success ? "✅ MQTT publish succeeded" : "❌ MQTT publish FAILED");
 }
+
+void publishControlStatus(const String& controlType, bool status) {
+  String topic = "planthub/" + String(PLANT_MODULE_ID) + "/" + controlType + "/status";
+  
+  StaticJsonDocument<128> doc;
+  doc["status"] = status ? "on" : "off";
+  
+  String payload;
+  serializeJson(doc, payload);
+
+  Serial.print("Publishing control status to topic: ");
+  Serial.println(topic);
+  Serial.print("Payload: ");
+  Serial.println(payload);
+
+  if (!mqttClient.connected()) {
+    Serial.println("MQTT not connected. Attempting to reconnect before publish.");
+    reconnectMQTT();
+    delay(500);
+  }
+
+  bool success = mqttClient.publish(topic.c_str(), payload.c_str());
+
+  if (success) {
+    Serial.println("✅ Control status published successfully");
+  } else {
+    Serial.print("❌ Failed to publish control status. MQTT state: ");
+    Serial.println(mqttClient.state());
+  }
+}
+
 
 
 
