@@ -9,8 +9,10 @@
 #define WIFI_PASSWORD "placeholder"
 
 // MQTT Configuration
-#define MQTT_SERVER   "mqtt.eclipseprojects.io"
-#define MQTT_PORT     1883
+#define MQTT_SERVER   "14ba6738ce264cd492d66195be36f106.s1.eu.hivemq.cloud"
+#define MQTT_PORT     8883
+#define MQTT_USERNAME "placeholder"
+#define MQTT_PASSWORD "placeholder"
 
 // Plant Module ID
 #define PLANT_MODULE_ID "8c6b5dcb-6451-4bfd-b9c2-bbf18e4c449a"

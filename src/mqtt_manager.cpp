@@ -1,13 +1,14 @@
 // mqtt_manager.cpp
 #include "mqtt_manager.h"
 #include "config.h"
-#include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 
 
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient mqttClient(espClient);
 
 void setupMQTT(void (*callback)(char*, byte*, unsigned int)) {
+  espClient.setInsecure();
   mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
   mqttClient.setCallback(callback);
   mqttClient.setBufferSize(2048);
@@ -16,7 +17,7 @@ void setupMQTT(void (*callback)(char*, byte*, unsigned int)) {
 void reconnectMQTT() {
   while (!mqttClient.connected()) {
     String clientId = "ESP32Client-" + String(random(0xffff), HEX);
-    if (mqttClient.connect(clientId.c_str())) {
+    if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD)) {
       String subscription = "planthub/" + String(PLANT_MODULE_ID) + "/+";
       mqttClient.subscribe(subscription.c_str());
 
