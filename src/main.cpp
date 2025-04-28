@@ -139,8 +139,6 @@ void handleControlCommand(String controlType) {
   Serial.print(controlType);
   Serial.println(" not found.");
 }
-
-
 // MQTT callback function.
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   String topicStr(topic);
