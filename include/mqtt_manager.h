@@ -11,4 +11,5 @@ void setupMQTT(void (*callback)(char*, byte*, unsigned int));
 void reconnectMQTT();
 int publishSensorData(const char* sensor_id, int value, const char* timestamp);
 void sendSensorInitMessage();
+void publishControlStatus(const String& controlType, bool status);
 #endif

@@ -4,7 +4,8 @@
 
 
 // for TAMU WiFi
-/*void connectToWiFi() {
+// if using make sure to include esp_wpa2 
+void connectToWiFi() {
   WiFi.disconnect(true);  // Reset WiFi
 
   WiFi.mode(WIFI_STA);
@@ -21,18 +22,22 @@
   Serial.println(WIFI_SSID);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print("WiFi Status: ");
+    Serial.println(WiFi.status());
   }
 
   Serial.println("\nConnected to WiFi.");
   Serial.println(WiFi.localIP());
-}*/
+} 
 
-void connectToWiFi() {
+/* void connectToWiFi() {
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print("Wifi Status: ");
+    Serial.println(WiFi.status());
   }
   Serial.println("\nWiFi connected. IP: " + WiFi.localIP().toString());
-}
+} */
